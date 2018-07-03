@@ -1,0 +1,15 @@
+{
+    "name": "dicarlosystems/trip-invoiceninja",
+    "description": "Vehicle trip module for Invoice Ninja",
+    "authors": [
+        {
+            "name": "Christopher Di Carlo",
+            "email": "chris@dicarlosystems.ca"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Modules\\Trip\\": ""
+        }
+    }
+}

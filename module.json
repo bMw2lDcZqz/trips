@@ -1,0 +1,17 @@
+{
+    "name": "Trip",
+    "alias": "trip",
+    "description": "Vehicle trip module for Invoice Ninja",
+    "keywords": [],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Trip\\Providers\\TripServiceProvider"
+    ],
+    "aliases":{},
+    "files": [
+        "start.php"
+    ],
+    "icon": "car",
+    "plural": "trip"
+}
