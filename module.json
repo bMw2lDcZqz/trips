@@ -1,6 +1,6 @@
 {
     "name": "Trip",
-    "alias": "trip",
+    "alias": "trips",
     "description": "Vehicle trip module for Invoice Ninja",
     "keywords": [],
     "active": 1,
@@ -12,6 +12,7 @@
     "files": [
         "start.php"
     ],
-    "icon": "car",
-    "plural": "trip"
+    "icon": "map-marker",
+    "plural": "trips",
+    "base-route": "trips"
 }
