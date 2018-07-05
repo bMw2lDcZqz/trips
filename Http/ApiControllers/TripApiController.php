@@ -22,7 +22,7 @@ class TripApiController extends BaseAPIController
 
     /**
      * @SWG\Get(
-     *   path="/trip",
+     *   path="/trips",
      *   summary="List trip",
      *   operationId="listTrips",
      *   tags={"trip"},
@@ -46,7 +46,7 @@ class TripApiController extends BaseAPIController
 
     /**
      * @SWG\Get(
-     *   path="/trip/{trip_id}",
+     *   path="/trips/{trip_id}",
      *   summary="Individual Trip",
      *   operationId="getTrip",
      *   tags={"trip"},
@@ -72,12 +72,9 @@ class TripApiController extends BaseAPIController
         return $this->itemResponse($request->entity());
     }
 
-
-
-
     /**
      * @SWG\Post(
-     *   path="/trip",
+     *   path="/trips",
      *   summary="Create a trip",
      *   operationId="createTrip",
      *   tags={"trip"},
@@ -106,7 +103,7 @@ class TripApiController extends BaseAPIController
 
     /**
      * @SWG\Put(
-     *   path="/trip/{trip_id}",
+     *   path="/trips/{trip_id}",
      *   summary="Update a trip",
      *   operationId="updateTrip",
      *   tags={"trip"},
@@ -146,7 +143,7 @@ class TripApiController extends BaseAPIController
 
     /**
      * @SWG\Delete(
-     *   path="/trip/{trip_id}",
+     *   path="/trips/{trip_id}",
      *   summary="Delete a trip",
      *   operationId="deleteTrip",
      *   tags={"trip"},

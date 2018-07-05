@@ -3,7 +3,12 @@
 namespace Modules\Trip\Http\Controllers;
 
 use Auth;
+use Input;
+use Redirect;
+use Session;
+use View;
 use App\Http\Controllers\BaseController;
+use App\Models\Client;
 use App\Services\DatatableService;
 use Modules\Trip\Datatables\TripDatatable;
 use Modules\Trip\Repositories\TripRepository;
@@ -51,16 +56,21 @@ class TripController extends BaseController
      * Show the form for creating a new resource.
      * @return Response
      */
-    public function create(TripRequest $request)
+    public function create(TripRequest $request, $clientPublicId = 0)
     {
         $data = [
             'trip' => null,
+            'clientPublicId' => Input::old('client') ? Input::old('client') : ($request->client_id ?: 0),
+            'entityType' => 'trip',
             'method' => 'POST',
-            'url' => 'trip',
+            'url' => 'trips',
             'title' => mtrans('trip', 'new_trip'),
+            'datetimeFormat' => Auth::user()->account->getMomentDateTimeFormat(),
         ];
 
-        return view('trip::edit', $data);
+        $data = array_merge($data, self::getViewModel());
+
+        return View::make('trip::edit', $data);
     }
 
     /**
@@ -70,10 +80,7 @@ class TripController extends BaseController
      */
     public function store(CreateTripRequest $request)
     {
-        $trip = $this->tripRepo->save($request->input());
-
-        return redirect()->to($trip->present()->editUrl)
-            ->with('message', mtrans('trip', 'created_trip'));
+        $trip = $this->save($request);
     }
 
     /**
@@ -87,7 +94,7 @@ class TripController extends BaseController
         $data = [
             'trip' => $trip,
             'method' => 'PUT',
-            'url' => 'trip/' . $trip->public_id,
+            'url' => 'trips/' . $trip->public_id,
             'title' => mtrans('trip', 'edit_trip'),
         ];
 
@@ -100,7 +107,7 @@ class TripController extends BaseController
      */
     public function show(TripRequest $request)
     {
-        return redirect()->to("trip/{$request->trip}/edit");
+        return redirect()->to("trips/{$request->trip}/edit");
     }
 
     /**
@@ -125,7 +132,42 @@ class TripController extends BaseController
         $ids = request()->input('public_id') ?: request()->input('ids');
         $count = $this->tripRepo->bulk($ids, $action);
 
-        return redirect()->to('trip')
+        return redirect()->to('trips')
             ->with('message', mtrans('trip', $action . '_trip_complete'));
+    }
+
+    /**
+     * @return array
+     */
+    private static function getViewModel($trip = false)
+    {
+        return [
+            'clients' => Client::scope()->withActiveOrSelected($trip ? $trip->client_id : false)->with('contacts')->orderBy('name')->get(),
+            'account' => Auth::user()->account,
+        ];
+    }
+
+    /**
+     * @param null $publicId
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    private function save($request, $publicId = null)
+    {
+        $action = Input::get('action');
+
+        if (in_array($action, ['archive', 'delete', 'restore'])) {
+            return self::bulk();
+        }
+
+        $trip = $this->tripRepo->save($publicId, $request->input());
+
+        if ($publicId) {
+            Session::flash('message', mtrans('trip', 'texts.updated_trip'));
+        } else {
+            Session::flash('message', mtrans('trip', 'texts.created_trip'));
+        }
+
+        return Redirect::to("trips/{$trip->public_id}/edit");
     }
 }

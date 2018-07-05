@@ -3,8 +3,10 @@
 namespace Modules\Trip\Repositories;
 
 use DB;
-use Modules\Trip\Models\Trip;
+use Utils;
 use App\Ninja\Repositories\BaseRepository;
+use App\Models\Client;
+use Modules\Trip\Models\Trip;
 //use App\Events\TripWasCreated;
 //use App\Events\TripWasUpdated;
 
@@ -24,15 +26,29 @@ class TripRepository extends BaseRepository
 
     public function find($filter = null, $userId = false)
     {
-        $query = DB::table('trip')
-                    ->where('trip.account_id', '=', \Auth::user()->account_id)
+        $query = DB::table('trips')
+                    ->leftJoin('clients', 'trips.client_id', '=', 'clients.id')
+                    ->leftJoin('contacts', 'contacts.client_id', '=', 'clients.id')
+                    ->where('trips.account_id', '=', \Auth::user()->account_id)
                     ->select(
-                        
-                        'trip.public_id',
-                        'trip.deleted_at',
-                        'trip.created_at',
-                        'trip.is_deleted',
-                        'trip.user_id'
+                        'trips.public_id',
+                        DB::raw("COALESCE(NULLIF(clients.name,''), NULLIF(CONCAT(contacts.first_name, ' ', contacts.last_name),''), NULLIF(contacts.email,'')) client_name"),
+                        'trips.deleted_at',
+                        'trips.created_at',
+                        'trips.is_deleted',
+                        'trips.client_id',
+                        'trips.user_id',
+                        'trips.trip_date',
+                        'trips.vehicle',
+                        'trips.purpose',
+                        'trips.start_odometer',
+                        'trips.end_odometer',
+                        'trips.notes',
+                        'clients.public_id as client_public_id',
+                        'clients.user_id as client_user_id',
+                        'contacts.first_name',
+                        'contacts.email',
+                        'contacts.last_name'
                     );
 
         $this->applyFilters($query, 'trip');
@@ -50,12 +66,43 @@ class TripRepository extends BaseRepository
         return $query;
     }
 
-    public function save($data, $trip = null)
+    public function save($publicId, $data, $trip = null)
     {
-        $entity = $trip ?: Trip::createNew();
+        if($trip) {
+            // do nothing
+        } elseif ($publicId) {
+            $trip = Trip::scope($publicId)->withTrashed()->firstOrFail();
+        } else {
+            $trip = $trip ?: Trip::createNew();
+        }
 
-        $entity->fill($data);
-        $entity->save();
+        $trip->fill($data);
+
+        if (isset($data['client'])) {
+            $trip->client_id = $data['client'] ? Client::getPrivateId($data['client']) : null;
+        } elseif (isset($data['client_id'])) {
+            $trip->client_id = $data['client_id'] ? Client::getPrivateId($data['client_id']) : null;
+        }
+
+        if (isset($data['trip_date_sql'])) {
+            $trip->trip_date = $data['trip_date_sql'];
+        } elseif (isset($data['trip_date'])) {
+            $trip->trip_date = Utils::toSqlDate($data['trip_date']);
+        }
+
+        if (isset($data['vehicle'])) {
+            $trip->vehicle = trim($data['vehicle']);
+        }
+
+        if (isset($data['purpose'])) {
+            $trip->purpose = trim($data['purpose']);
+        }
+
+        if (isset($data['notes'])) {
+            $trip->notes = trim($data['notes']);
+        }
+
+        $trip->save();
 
         /*
         if (!$publicId || intval($publicId) < 0) {
@@ -65,7 +112,7 @@ class TripRepository extends BaseRepository
         }
         */
 
-        return $entity;
+        return $trip;
     }
 
 }

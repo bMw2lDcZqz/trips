@@ -12,12 +12,18 @@ class CreateTripTable extends Migration
      */
     public function up()
     {
-        Schema::create(strtolower('trip'), function (Blueprint $table) {
+        Schema::create(strtolower('trips'), function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('user_id')->index();
             $table->unsignedInteger('account_id')->index();
             $table->unsignedInteger('client_id')->index()->nullable();
 
+            $table->date('trip_date');
+            $table->string('vehicle');
+            $table->string('purpose');
+            $table->unsignedInteger('start_odometer');
+            $table->unsignedInteger('end_odometer');
+            $table->string('notes')->nullable();
 
             $table->timestamps();
             $table->softDeletes();
@@ -39,6 +45,6 @@ class CreateTripTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists(strtolower('trip'));
+        Schema::dropIfExists(strtolower('trips'));
     }
 }

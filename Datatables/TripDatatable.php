@@ -10,16 +10,22 @@ use App\Ninja\Datatables\EntityDatatable;
 class TripDatatable extends EntityDatatable
 {
     public $entityType = 'trip';
-    public $sortCol = 1;
+    public $sortCol = 2;
 
     public function columns()
     {
         return [
             
             [
-                'created_at',
+                'client_name',
+                function($model) {
+                    return link_to('trips/'.$model->public_id.'/edit', $model->client_name)->toHtml(); 
+                },
+            ],
+            [
+                'trip_date',
                 function ($model) {
-                    return Utils::fromSqlDateTime($model->created_at);
+                    return Utils::fromSqlDate($model->trip_date);
                 }
             ],
         ];
@@ -31,7 +37,7 @@ class TripDatatable extends EntityDatatable
             [
                 mtrans('trip', 'edit_trip'),
                 function ($model) {
-                    return URL::to("trip/{$model->public_id}/edit");
+                    return URL::to("trips/{$model->public_id}/edit");
                 },
                 function ($model) {
                     return Auth::user()->can('editByOwner', ['trip', $model->user_id]);
